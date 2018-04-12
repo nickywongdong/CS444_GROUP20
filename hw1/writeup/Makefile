@@ -1,4 +1,4 @@
-TEXFN=hw1_writeup
+TEXFN=CS444_project1_20
 
 all: pdf
 

@@ -1,0 +1,200 @@
+\documentclass[onecolumn, draftclsnofoot,10pt, compsoc]{IEEEtran}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{setspace}
+\usepackage{tipa}
+\usepackage{array, longtable}
+\usepackage{listings}%
+\usepackage{color}
+\usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
+\lstset{%
+  basicstyle=\ttfamily\footnotesize,
+  backgroundcolor=\color{gray!10},%
+  tabsize=3,
+  language=bash,
+  columns=fullflexible,
+  %frame=shadowbox,
+  frame=leftline,
+  rulesepcolor=\color{gray},
+  xleftmargin=20pt,
+  framexleftmargin=15pt,
+  keywordstyle=\color{black}\bf,
+  commentstyle=\color{OliveGreen},
+  %stringstyle=\color{red},
+  breaklines=true,
+  %numbers=left,
+  %numberstyle=\tiny,
+  %numbersep=5pt,
+  showstringspaces=false,
+  postbreak=\mbox{{/}\space},
+  emph={str},emphstyle={\color{magenta}},
+  alsoletter=-,%to allow qemu-system...
+  %add extra keywords here.
+  emph={%  
+    cd, cp, qemu-system-i386, mv, mkdir, make, for, git%
+    },emphstyle={\color{black}\bf},
+  %remove keywords below
+  deletekeywords={enable}
+}%
+
+
+\usepackage{geometry}
+\geometry{textheight=9.5in, textwidth=7in}
+
+\usepackage{graphicx}
+\graphicspath{{images/}}
+
+% 1. Fill in these details
+\def \TeamName{     Group 20}
+\def \GroupMemberOne{           Max Moulds}
+\def \GroupMemberTwo{           Monica Sek}
+\def \GroupMemberThree{         Nicholas Wong}
+\def \ProfessorPerson{      Dr. Kevin McGrath}
+
+
+% 2. Uncomment the appropriate line below so that the document type works
+\def \DocType{      HW1 Writeup
+                }
+
+\newcommand{\NameSigPair}[1]{\par
+\makebox[2.75in][r]{#1} \hfil   \makebox[3.25in]{\makebox[2.25in]{\hrulefill} \hfill        \makebox[.75in]{\hrulefill}}
+\par\vspace{-12pt} \textit{\tiny\noindent
+\makebox[2.75in]{} \hfil        \makebox[3.25in]{\makebox[2.25in][r]{Signature} \hfill  \makebox[.75in][r]{Date}}}}
+% 3. If the document is not to be signed, uncomment the RENEWcommand below
+%\renewcommand{\NameSigPair}[1]{#1}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+\begin{titlepage}
+    \pagenumbering{gobble}
+    \begin{singlespace}
+        \hfill
+        \par\vspace{.2in}
+        \centering
+        \scshape{
+            \huge Operating Systems II \DocType \par
+            {\large\today}\par
+            \vspace{.5in}
+            \vfill
+            \vspace{5pt}
+            %{\Large\NameSigPair{\ProfessorPerson}\par}
+                        {\large Prepared for }\par
+                        \ProfessorPerson\par
+            {\large Prepared by }\par
+            \GroupMemberOne\par
+                        \GroupMemberTwo\par
+                        \GroupMemberThree\par
+            \vspace{5pt}
+            \vspace{20pt}
+        }
+        \begin{abstract}
+        %6. Fill in your abstract
+            This document is the writeup for homework 1 of Operating Systems II Spring term 2018, written by Group 20.
+                    \end{abstract}
+    \end{singlespace}
+\end{titlepage}
+\newpage
+\pagenumbering{arabic}
+\tableofcontents
+% 7. uncomment this (if applicable). Consider adding a page break.
+%\listoffigures
+%\listoftables
+\clearpage
+
+\section{Log of Commands}
+The directory for the group was created by navigating to the proper directory, followed by a mkdir. Permissions were granted so the whole group could access this directory:
+\begin{lstlisting}
+cd /scratch/spring2018
+mkdir group20
+chmod -R 777 group20
+\end{lstlisting}
+
+We then sourced the environment using:
+\begin{lstlisting}
+source /scratch/files/environment-setup-i586-poky-linux.csh
+\end{lstlisting}
+
+The kernel image was pulled from the supplied repository and unpacked:
+\begin{lstlisting}
+tar xvjf linux-yocto-3.19.2.tar.bz2
+\end{lstlisting}
+
+We then copied the configuration file, and placed it in the root of the linux tree, then renamed it to .config:
+\begin{lstlisting}
+cd /scratch/spring2018/group20/linux-yocto-3.19.2
+cp /scratch/files/config-3.19.2-yocto-standard .
+mv config-3.19.2-yocto-standard .config
+\end{lstlisting}
+
+The kernel was then built using 4 threads:
+\begin{lstlisting}
+make -j4 all
+\end{lstlisting}
+
+The VM was then ran with the following command:
+\begin{lstlisting}
+qemu-system-i386 -gdb tcp::5520 -S -nographic -kernel linux-yocto-3.19.2/arch/i386/boot/bZimage -drive file=core-image-lsb-sdk-qemux86.ext4,if=virtio -enable-kvm -net none -usb -localtime --no-reboot --append "root=/dev/vda rw console=ttyS0 debug"
+\end{lstlisting}
+
+GDB was used to continue the process:
+\begin{lstlisting}
+gdb -tui
+    remote target localhost:5520
+    continue
+\end{lstlisting}
+
+\section{qemu Flags and Explanations}
+Flags:
+\begin{itemize}
+    \item -gdb tcp::5520:
+    
+        Waits for gdb tcp connection
+    \item -S:
+    
+        Shorthand for -gdb tcp::5520, opens gdbserver on TCP port 5520
+    \item -nographic:
+    
+        Disables graphical output
+    \item -kernel linux-yocto-3.19.2/arch/i386/boot/bZimage
+    
+        Selects the bZimage as the kernel to load
+    \item -drive file=core-image-lsb-sdk-qemux86.ext4,if=virtio -enable-kvm
+    
+        Defines a new virtual drive, and uses Virtio and enables KVM if available.
+    \item -net none
+    
+        Disables network
+    \item -usb
+    
+        Enables USB driver
+    \item -localtime
+    
+    \item --no-reboot
+    
+        Specify VM to exit instead of rebooting
+    \item --append "root=/dev/vda rw console=ttys0 debug"
+    
+        give kernel command line arguments to specify root directory, and to use ttys0 as debug console
+\end{itemize}
+
+\newpage
+\section{Version Control Log}
+%% uncomment this when you have the file on machine
+\input{gitlog.tex}
+\section{Work Log}
+\begin{tabular}{|l|l|}
+\hline
+     April 9 & Initial build of kernel using 3.19\\\hline
+     April 10 & Running qemu with provided images for testing\\\hline
+     April 10 & Rebuild with 3.19.2 to include logs, and to use config file\\\hline
+     April 10 & Initial run of qemu with built kernel\\\hline
+     April 12 & Removal of build, building with team\\\hline
+     April 12 & Attempt to add permissions for directory\\\hline
+     April 12 & Testing kernel build for another user in group directory (sekmo)\\\hline
+     April 12 & Kernel build and run unsucessful, attempting to rebuild under initial user (wongnich)\\\hline
+     April 12 & Modifying config, and Makefile to include custom system version tag\\\hline
+     April 12 & Moving kernel build of second user to -OLD, permissions not set correctly for removal\\\hline
+     April 12 & Rebuild of kernel to include custom tags, and git logs within linux root tree\\\hline
+     April 12 & Attempt to run permissions script provided for teammates\\\hline
+\end{tabular}
+\end{document}
