@@ -31,10 +31,10 @@
   alsoletter=-,%to allow qemu-system...
   %add extra keywords here.
   emph={%  
-    cd, cp, qemu-system-i386, mv, mkdir, make, for, git%
+    cd, cp, qemu-system-i386, mv, mkdir, make, for, git, gdb, uname, tar, chmod%
     },emphstyle={\color{black}\bf},
   %remove keywords below
-  deletekeywords={enable}
+  deletekeywords={enable, continue}
 }%
 
 
@@ -45,21 +45,21 @@
 \graphicspath{{images/}}
 
 % 1. Fill in these details
-\def \TeamName{     Group 20}
-\def \GroupMemberOne{           Max Moulds}
-\def \GroupMemberTwo{           Monica Sek}
-\def \GroupMemberThree{         Nicholas Wong}
-\def \ProfessorPerson{      Dr. Kevin McGrath}
+\def \TeamName{   Group 20}
+\def \GroupMemberOne{     Max Moulds}
+\def \GroupMemberTwo{     Monica Sek}
+\def \GroupMemberThree{     Nicholas Wong}
+\def \ProfessorPerson{    Dr. Kevin McGrath}
 
 
 % 2. Uncomment the appropriate line below so that the document type works
-\def \DocType{      HW1 Writeup
-                }
+\def \DocType{    HW1 Writeup
+        }
 
 \newcommand{\NameSigPair}[1]{\par
-\makebox[2.75in][r]{#1} \hfil   \makebox[3.25in]{\makebox[2.25in]{\hrulefill} \hfill        \makebox[.75in]{\hrulefill}}
+\makebox[2.75in][r]{#1} \hfil   \makebox[3.25in]{\makebox[2.25in]{\hrulefill} \hfill    \makebox[.75in]{\hrulefill}}
 \par\vspace{-12pt} \textit{\tiny\noindent
-\makebox[2.75in]{} \hfil        \makebox[3.25in]{\makebox[2.25in][r]{Signature} \hfill  \makebox[.75in][r]{Date}}}}
+\makebox[2.75in]{} \hfil    \makebox[3.25in]{\makebox[2.25in][r]{Signature} \hfill  \makebox[.75in][r]{Date}}}}
 % 3. If the document is not to be signed, uncomment the RENEWcommand below
 %\renewcommand{\NameSigPair}[1]{#1}
 
@@ -78,19 +78,19 @@
             \vfill
             \vspace{5pt}
             %{\Large\NameSigPair{\ProfessorPerson}\par}
-                        {\large Prepared for }\par
-                        \ProfessorPerson\par
+            {\large Prepared for }\par
+            \ProfessorPerson\par
             {\large Prepared by }\par
             \GroupMemberOne\par
-                        \GroupMemberTwo\par
-                        \GroupMemberThree\par
+            \GroupMemberTwo\par
+            \GroupMemberThree\par
             \vspace{5pt}
             \vspace{20pt}
         }
         \begin{abstract}
         %6. Fill in your abstract
-            This document is the writeup for homework 1 of Operating Systems II Spring term 2018, written by Group 20.
-                    \end{abstract}
+          This document is the writeup for homework 1 of Operating Systems II Spring term 2018, written by Group 20.
+          \end{abstract}
     \end{singlespace}
 \end{titlepage}
 \newpage
@@ -143,6 +143,18 @@ gdb -tui
     continue
 \end{lstlisting}
 
+The following was used to verify that the kernel was indeed the custom kernel that was just built:
+\begin{lstlisting}
+uname -a
+    Linux qemux86 3.19.2Group20Makefile-group2-config-file+ #1 SMP PREEMPT Thu Apr 12 09:02:01 PDT 2018 i686 GNU/Linux
+\end{lstlisting}
+Compared to the provided kernel:
+\begin{lstlisting}
+uname -a
+    Linux qemux86 3.19.2-yocto-standard #1 SMP PREEMPT Wed Apr 1 00:11:06 GMT 2015 i686 GNU/Linux
+\end{lstlisting}
+
+\newpage
 \section{qemu Flags and Explanations}
 Flags:
 \begin{itemize}
@@ -155,9 +167,9 @@ Flags:
     \item -nographic:
     
         Disables graphical output
-    \item -kernel linux-yocto-3.19.2/arch/i386/boot/bZimage
+    \item -kernel linux-yocto-3.19.2/arch/i386/boot/bzimage
     
-        Selects the bZimage as the kernel to load
+        Selects bzimage as the kernel to load
     \item -drive file=core-image-lsb-sdk-qemux86.ext4,if=virtio -enable-kvm
     
         Defines a new virtual drive, and uses Virtio and enables KVM if available.
@@ -179,8 +191,32 @@ Flags:
 
 \newpage
 \section{Version Control Log}
+
 %% uncomment this when you have the file on machine
-\input{gitlog.tex}
+%%\input{gitlog.tex}
+
+%%manually pasted generated table for viewing on sharelatex, remove later
+\begin{longtable} {|l|l|p{13cm}|}
+    \hline
+    \textbf{Author} & \textbf{Date} & \textbf{Message} \\ \hline
+nickywongdong & 2018-04-08 & first commit \\ \hline
+nickywongdong & 2018-04-10 & copying and unpacking yocto 3.19.2 image \\ \hline
+nickywongdong & 2018-04-10 & copying .ext4 driver file using tar, and adding gitignore for the file \\ \hline
+nickywongdong & 2018-04-10 & adding a gitignore in the hw directory as well \\ \hline
+nickywongdong & 2018-04-12 & unpacking initial kernel from repo \\ \hline
+nickywongdong & 2018-04-12 & adding custom version tag to Makefile under extra version \\ \hline
+nickywongdong & 2018-04-12 & copying config from /scratch/files and renaming to .config, then running make menuconfig (don't know if we need this step or not) \\ \hline
+nickywongdong & 2018-04-12 & moving into one git repo after build of final kernel. Adding initial state of writeup for latex \\ \hline
+nickywongdong & 2018-04-12 & attempt to merge intial git with new repo \\ \hline
+nickywongdong & 2018-04-12 & moving kernel outside of hw directories \\ \hline
+nickywongdong & 2018-04-12 & finalizing moving kernel root tree outside of hw directory \\ \hline
+nickywongdong & 2018-04-12 & adding git log latex table generator \\ \hline
+nickywongdong & 2018-04-12 & changing git log table generator, previous required certain installation and rights \\ \hline
+nickywongdong & 2018-04-12 & updating gitignore, removing previous latex-git-log \\ \hline
+nickywongdong & 2018-04-12 & moving to local machine to generate log table \\ \hline
+\end{longtable}
+
+
 \section{Work Log}
 \begin{tabular}{|l|l|}
 \hline
