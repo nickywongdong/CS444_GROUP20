@@ -1,3 +1,6 @@
 *.ext4
 /hw1-git-max
 *.tar.bz2
+.DS_Store
+._.DS_Store
+._*
