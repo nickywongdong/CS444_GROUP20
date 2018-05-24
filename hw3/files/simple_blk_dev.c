@@ -22,6 +22,7 @@
 #include <linux/genhd.h>
 #include <linux/blkdev.h>
 #include <linux/hdreg.h>
+#include <linux/crypto.h>   /* Adding for crypto capabilities */
 
 MODULE_LICENSE("Dual BSD/GPL");
 static char *Version = "1.3";
@@ -56,11 +57,31 @@ static struct sbd_device {
 
 
 /*
+ * Crypto Instantiation
+ * Crypto Key defined here
+ * Crypto Key must be 16 chars long
+ */
+struct crypto_cipher *tfm;
+static char *key = "1234567890123456";
+module_param(key, charp, 0644);
+static int keylen = 16;
+module_param(keylen, int, 0644);
+
+
+
+/*
  * Handle an I/O request.
  */
 static void sbd_transfer(struct sbd_device *dev, unsigned long sector,
 		unsigned long nsect, char *buffer, int write)
 {
+    int i;
+
+    if (write)
+        printk("simple_blk_dev.c: sbd_transfer() -- Writing Data\n");
+    else if (!write)
+        printk("simple_blk_dev.c: sbd_transfer() -- Reading Data\n");
+
     unsigned long offset = sector*hardsect_size;
     unsigned long nbytes = nsect*hardsect_size;
     
@@ -68,10 +89,19 @@ static void sbd_transfer(struct sbd_device *dev, unsigned long sector,
 	printk (KERN_NOTICE "sbd: Beyond-end write (%ld %ld)\n", offset, nbytes);
 	return;
     }
-    if (write)
-	memcpy(dev->data + offset, buffer, nbytes);
-    else
-	memcpy(buffer, dev->data + offset, nbytes);
+
+
+    /* 
+     * Area change to allow for Crypto
+     *
+     * Encrypt/Decrypt data as it is transferring one block at a time
+    */
+    if (write) {
+        memcpy(dev->data + offset, buffer, nbytes);
+    }
+    else {
+        memcpy(buffer, dev->data + offset, nbytes);
+    }
 }
 
 static void sbd_request(request_queue_t *q)
