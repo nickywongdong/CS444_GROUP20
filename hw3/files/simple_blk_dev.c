@@ -71,6 +71,8 @@ static void sbd_transfer(struct sbd_device *dev, sector_t sector,
         unsigned long nsect, char *buffer, int write) {
     unsigned long offset = sector * logical_block_size;
     unsigned long nbytes = nsect * logical_block_size;
+    u8 *destination;
+    u8 *source;
     int i;
 
     if (write)
@@ -165,8 +167,13 @@ static void sbd_request(struct request_queue *q) {
             __blk_end_request_all(req, -EIO);
             continue;
         }
-        sbd_transfer(&Device, blk_rq_pos(req), blk_rq_cur_sectors(req),
-                req->buffer, rq_data_dir(req));
+        
+        sbd_transfer(&Device,                   /* Device Data */
+                    blk_rq_pos(req),            /* Request Sector */
+                    blk_rq_cur_sectors(req),    /* Number of sectors */
+                    bio_data(req->bio),                /* Buffer */
+                    rq_data_dir(req));          /* Write */
+        
         if ( ! __blk_end_request_cur(req, 0) ) {
             req = blk_fetch_request(q);
         }
