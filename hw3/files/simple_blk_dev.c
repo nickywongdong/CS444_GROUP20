@@ -97,10 +97,58 @@ static void sbd_transfer(struct sbd_device *dev, unsigned long sector,
      * Encrypt/Decrypt data as it is transferring one block at a time
     */
     if (write) {
-        memcpy(dev->data + offset, buffer, nbytes);
+        //memcpy(dev->data + offset, buffer, nbytes);
+        printk("simple_blk_dev.c -- Write %lu bytes to device data\n", nbytes);
+
+        destination = dev->data + offset;
+        source = buffer;
+
+        for (i = 0; i < nbytes; i += crypto_cipher_blocksize(tfm)) {
+            /* Use crypto cipher handler and tfm to encrypt data one block at a time*/
+            crypto_cipher_encrypt_one(
+                    tfm,                    /* Cipher handler */
+                    dev->data + offset + i, /* Destination */
+                    buffer + i              /* Source */
+                    );
+        }
+
+        printk("simple_blk_dev.c -- UNENCRYPTED DATA VIEW:\n");
+        for (i = 0; i < 100; i++) {
+            printk("%u", (unsigned) *destination++);
+        }
+
+        printk("\nsimple_blk_dev.c -- ENCRYPTED DATA VIEW:\n");
+        for (i = 0; i < 100; i++) {
+            printk("%u", (unsigned) *source++);
+        }
+        printk("\n");
+
     }
     else {
-        memcpy(buffer, dev->data + offset, nbytes);
+        printk("simple_blk_dev.c -- Read %lu bytes to device data\n", nbytes);
+
+        destination = dev->data + offset;
+        source = buffer;
+
+        for (i = 0; i < nbytes; i += crypto_cipher_blocksize(tfm)) {
+            /* Use crypto cipher handler and tfm to decrypt data one block at a time*/
+            crypto_cipher_decrypt_one(
+                    tfm,                    /* Cipher handler */
+                    buffer + i,             /* Destination */
+                    dev->data + offset + i  /* Source */
+                    );
+        }
+
+        printk("simple_blk_dev.c -- UNENCRYPTED DATA VIEW:\n");
+        for (i = 0; i < 100; i++) {
+            printk("%u", (unsigned) *destination++);
+        }
+
+        printk("\nsimple_blk_dev.c -- ENCRYPTED DATA VIEW:\n");
+        for (i = 0; i < 100; i++) {
+            printk("%u", (unsigned) *source++);
+        }
+        printk("\n");
     }
 }
 
@@ -164,9 +212,16 @@ static struct block_device_operations sbd_ops = {
 
 static int __init sbd_init(void)
 {
+
+    //Testing for Output
+    printk("simple_blk_dev.c -- Initializing\n");
+
 /*
  * Set up our internal device.
  */
+    printk("simple_blk_dev.c -- Set up internal device\n");
+
+
     Device.size = nsectors*hardsect_size;
     spin_lock_init(&Device.lock);
     Device.data = vmalloc(Device.size);
@@ -175,6 +230,9 @@ static int __init sbd_init(void)
 /*
  * Get a request queue.
  */
+
+    printk("simple_blk_dev.c -- Get a request queue\n");
+
     Queue = blk_init_queue(sbd_request, &Device.lock);
     if (Queue == NULL)
 	    goto out;
@@ -182,17 +240,39 @@ static int __init sbd_init(void)
 /*
  * Get registered.
  */
+
+    printk("simple_blk_dev.c -- Get registered\n");
+
     major_num = register_blkdev(major_num, "sbd");
     if (major_num <= 0) {
 	printk(KERN_WARNING "sbd: unable to get major number\n");
 	goto out;
     }
+
+    /* Initialize cypto and set key
+     * ctrypto_alloc_cipher are: crypto driver name, type, and mask
+     */
+    tfm = crypto_alloc_cipher("aes", 0, 0);
+
+    if (IS_ERR(tfm))
+        printk("simple_blk_dev.c -- Unable to allocate cipher\n");
+    else
+        printk("simple_blk_dev.c -- Allocated cipher\n");
+
+    /* Crypto debugging print statements */
+    printk("simple_blk_dev.c -- Block Cipher Size: %u\n", crypto_cipher_blocksize(tfm));
+    printk("simple_blk_dev.c -- Crypto key: %s\n", key);
+    printk("simple_blk_dev.c -- Key Length: %d\n", keylen);
+
 /*
  * And the gendisk structure.
  */
+
+    printk("simple_blk_dev.c -- And the gendisk structure\n");
+
     Device.gd = alloc_disk(16);
     if (! Device.gd)
-	goto out_unregister;
+    goto out_unregister;
     Device.gd->major = major_num;
     Device.gd->first_minor = 0;
     Device.gd->fops = &sbd_ops;
@@ -201,6 +281,8 @@ static int __init sbd_init(void)
     set_capacity(Device.gd, nsectors*(hardsect_size/KERNEL_SECTOR_SIZE));
     Device.gd->queue = Queue;
     add_disk(Device.gd);
+
+    printk("simple_blk_dev.c - Successful initialization\n");
 
     return 0;
 
