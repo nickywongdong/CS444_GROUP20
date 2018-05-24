@@ -76,9 +76,9 @@ static void sbd_transfer(struct sbd_device *dev, sector_t sector,
     int i;
 
     if (write)
-        printk("[ sbd.c: sbd_transfer() ] - WRITE Transferring Data\n");
+        printk("[ simple_blk_dev.c: sbd_transfer() ] - WRITE Transferring Data\n");
     else
-        printk("[ sbd.c: sbd_transfer() ] - READ Transferring Data\n");
+        printk("[ simple_blk_dev.c: sbd_transfer() ] - READ Transferring Data\n");
 
 
     if ((offset + nbytes) > dev->size) {
@@ -88,9 +88,9 @@ static void sbd_transfer(struct sbd_device *dev, sector_t sector,
 
 
     if (crypto_cipher_setkey(tfm, key, keylen) == 0) {
-        printk("[ sbd.c: sbd_transfer() ] - Crypto key is set and encrypted\n");
+        printk("[ simple_blk_dev.c: sbd_transfer() ] - Crypto key is set and encrypted\n");
     } else {
-        printk("[ sbd.c: sbd_transfer() ] - Crypto key was not able to be set\n");
+        printk("[ simple_blk_dev.c: sbd_transfer() ] - Crypto key was not able to be set\n");
     }
     /*
      * Crypto section for read/write
@@ -98,7 +98,7 @@ static void sbd_transfer(struct sbd_device *dev, sector_t sector,
      */
     if (write) {
 
-        printk("[ sbd.c: sbd_transfer() ] - Write %lu bytes to device data\n", nbytes);
+        printk("[ simple_blk_dev.c: sbd_transfer() ] - Write %lu bytes to device data\n", nbytes);
 
         destination = dev->data + offset;
         source = buffer;
@@ -112,12 +112,12 @@ static void sbd_transfer(struct sbd_device *dev, sector_t sector,
                     );
         }
 
-        printk("[ sbd.c: sbd_transfer() ] - UNENCRYPTED DATA VIEW:\n");
+        printk("[ simple_blk_dev.c: sbd_transfer() ] - UNENCRYPTED DATA VIEW:\n");
         for (i = 0; i < 100; i++) {
             printk("%u", (unsigned) *destination++);
         }
 
-        printk("\n[ sbd.c: sbd_transfer() ] - ENCRYPTED DATA VIEW:\n");
+        printk("\n[ simple_blk_dev.c: sbd_transfer() ] - ENCRYPTED DATA VIEW:\n");
         for (i = 0; i < 100; i++) {
             printk("%u", (unsigned) *source++);
         }
@@ -125,7 +125,7 @@ static void sbd_transfer(struct sbd_device *dev, sector_t sector,
     }
 
     else {
-        printk("[ sbd.c: sbd_transfer() ] - Read %lu bytes to device data\n", nbytes);
+        printk("[ simple_blk_dev.c: sbd_transfer() ] - Read %lu bytes to device data\n", nbytes);
 
         destination = dev->data + offset;
         source = buffer;
@@ -139,19 +139,19 @@ static void sbd_transfer(struct sbd_device *dev, sector_t sector,
                     );
         }
 
-        printk("[ sbd.c: sbd_transfer() ] - UNENCRYPTED DATA VIEW:\n");
+        printk("[ simple_blk_dev.c: sbd_transfer() ] - UNENCRYPTED DATA VIEW:\n");
         for (i = 0; i < 100; i++) {
             printk("%u", (unsigned) *destination++);
         }
 
-        printk("\n[ sbd.c: sbd_transfer() ] - ENCRYPTED DATA VIEW:\n");
+        printk("\n[ simple_blk_dev.c: sbd_transfer() ] - ENCRYPTED DATA VIEW:\n");
         for (i = 0; i < 100; i++) {
             printk("%u", (unsigned) *source++);
         }
         printk("\n");
     }
 
-    printk("[ sbd.c: sbd_transfer() ] - Transfer and Encryption Completed\n");
+    printk("[ simple_blk_dev.c: sbd_transfer() ] - Transfer and Encryption Completed\n");
 }
 
 static void sbd_request(struct request_queue *q) {
@@ -173,7 +173,7 @@ static void sbd_request(struct request_queue *q) {
                     blk_rq_cur_sectors(req),    /* Number of sectors */
                     bio_data(req->bio),                /* Buffer */
                     rq_data_dir(req));          /* Write */
-        
+
         if ( ! __blk_end_request_cur(req, 0) ) {
             req = blk_fetch_request(q);
         }
@@ -207,7 +207,7 @@ static struct block_device_operations sbd_ops = {
 
 static int __init sbd_init(void) {
 
-    printk("[ sbd.c: sbd_init() ] - Start Initialize\n");
+    printk("[ simple_blk_dev.c: sbd_init() ] - Start Initialize\n");
 
 
     /*
@@ -240,14 +240,14 @@ static int __init sbd_init(void) {
     tfm = crypto_alloc_cipher("aes", 0, 0);
 
     if (IS_ERR(tfm))
-        printk("[ sbd.c: sbd_init() ] - Unable to allocate cipher\n");
+        printk("[ simple_blk_dev.c: sbd_init() ] - Unable to allocate cipher\n");
     else
-        printk("[ sbd.c: sbd_init() ] - Allocated cipher\n");
+        printk("[ simple_blk_dev.c: sbd_init() ] - Allocated cipher\n");
 
     /* Crypto debugging print statements */
-    printk("[ sbd.c: sbd_init() ] - Block Cipher Size: %u\n", crypto_cipher_blocksize(tfm));
-    printk("[ sbd.c: sbd_init() ] - Crypto key: %s\n", key);
-    printk("[ sbd.c: sbd_init() ] - Key Length: %d\n", keylen);
+    printk("[ simple_blk_dev.c: sbd_init() ] - Block Cipher Size: %u\n", crypto_cipher_blocksize(tfm));
+    printk("[ simple_blk_dev.c: sbd_init() ] - Crypto key: %s\n", key);
+    printk("[ simple_blk_dev.c: sbd_init() ] - Key Length: %d\n", keylen);
 
     /*
      * And the gendisk structure.
@@ -264,7 +264,7 @@ static int __init sbd_init(void) {
     Device.gd->queue = Queue;
     add_disk(Device.gd);
 
-    printk("[ sbd.c: sbd_init() ] - Successful initialization\n");
+    printk("[ simple_blk_dev.c: sbd_init() ] - Successful initialization\n");
 
     return 0;
 
