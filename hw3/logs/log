@@ -1,0 +1,55 @@
+First run with Crypto:
+
+*************************
+
+drivers/block/simple_blk_dev.c: In function ‘sbd_transfer’:
+drivers/block/simple_blk_dev.c:85:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+     unsigned long offset = sector*hardsect_size;
+     ^
+drivers/block/simple_blk_dev.c:103:9: error: ‘destination’ undeclared (first use in this function)
+         destination = dev->data + offset;
+         ^
+drivers/block/simple_blk_dev.c:103:9: note: each undeclared identifier is reported only once for each function it appears in
+drivers/block/simple_blk_dev.c:104:9: error: ‘source’ undeclared (first use in this function)
+         source = buffer;
+         ^
+drivers/block/simple_blk_dev.c: At top level:
+drivers/block/simple_blk_dev.c:155:25: error: unknown type name ‘request_queue_t’
+ static void sbd_request(request_queue_t *q)
+                         ^
+drivers/block/simple_blk_dev.c:211:1: warning: initialization from incompatible pointer type [enabled by default]
+ };
+ ^
+drivers/block/simple_blk_dev.c:211:1: warning: (near initialization for ‘sbd_ops.ioctl’) [enabled by default]
+drivers/block/simple_blk_dev.c: In function ‘sbd_init’:
+drivers/block/simple_blk_dev.c:236:28: error: ‘sbd_request’ undeclared (first use in this function)
+     Queue = blk_init_queue(sbd_request, &Device.lock);
+                            ^
+drivers/block/simple_blk_dev.c:239:5: error: implicit declaration of function ‘blk_queue_hardsect_size’ [-Werror=implicit-function-declaration]
+     blk_queue_hardsect_size(Queue, hardsect_size);
+     ^
+drivers/block/simple_blk_dev.c: At top level:
+drivers/block/simple_blk_dev.c:28:14: warning: ‘Version’ defined but not used [-Wunused-variable]
+ static char *Version = "1.3";
+              ^
+drivers/block/simple_blk_dev.c:75:13: warning: ‘sbd_transfer’ defined but not used [-Wunused-function]
+ static void sbd_transfer(struct sbd_device *dev, unsigned long sector,
+             ^
+cc1: some warnings being treated as errors
+make[2]: *** [drivers/block/simple_blk_dev.o] Error 1
+make[1]: *** [drivers/block] Error 2
+make[1]: *** Waiting for unfinished jobs....
+  CC [M]  drivers/block/aoe/aoechr.o
+  CC [M]  drivers/block/aoe/aoecmd.o
+  CC [M]  drivers/block/aoe/aoedev.o
+  CC [M]  drivers/block/aoe/aoemain.o
+  CC [M]  drivers/block/aoe/aoenet.o
+  LD [M]  drivers/block/aoe/aoe.o
+make: *** [drivers] Error 2
+make: *** Waiting for unfinished jobs....
+
+
+*************************
+
+
+
