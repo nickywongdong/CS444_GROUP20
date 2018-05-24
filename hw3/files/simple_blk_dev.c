@@ -192,3 +192,6 @@ static void __exit sbd_exit(void)
 	
 module_init(sbd_init);
 module_exit(sbd_exit);
+
+MODULE_AUTHOR("OS2_Spring2018_Group20");
+MODULE_DESCRIPTION("Simple Block Device Driver With Crypto");
