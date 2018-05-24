@@ -24,10 +24,10 @@ You are also required to do the following:
 * Version control log (formatted as a table) -- there are any number of tools for generating a TeX table from repo logs
 * Work log. What was done when?
 * Answer the following questions in sufficient detail:
-.. 1. What do you think the main point of this assignment is?
-.. 2. How did you personally approach the problem? Design decisions, algorithm, etc.
-.. 3. How did you ensure your solution was correct? Testing details, for instance. Ensure this is written in a way that the TAs can follow to ensure correctness.
-.. 4. What did you learn?
+..1. What do you think the main point of this assignment is?
+..2. How did you personally approach the problem? Design decisions, algorithm, etc.
+..3. How did you ensure your solution was correct? Testing details, for instance. Ensure this is written in a way that the TAs can follow to ensure correctness.
+..4. What did you learn?
 
 Make sure your submission is a tarball labelled CS444_project3_#.tar.bz2 and includes the following:
 
