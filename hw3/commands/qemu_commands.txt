@@ -1,0 +1,7 @@
+# commands used inside qemu virtual machine to test kernel module:
+
+insmod sdb.ko
+
+mkfs.ext2 /dev/sbd0
+
+mount /dev/sbd0 /test
