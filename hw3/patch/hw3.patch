@@ -11,6 +11,20 @@ index 239f851..e49665a 100644
  NAME = Diseased Newt
  
  # *DOCUMENTATION*
+diff --git a/linux-yocto-3.19.2/drivers/block/Kconfig b/linux-yocto-3.19.2/drivers/block/Kconfig
+index 014a1cf..42eb2f1 100644
+--- a/linux-yocto-3.19.2/drivers/block/Kconfig
++++ b/linux-yocto-3.19.2/drivers/block/Kconfig
+@@ -15,6 +15,9 @@ menuconfig BLK_DEV
+ 
+ if BLK_DEV
+ 
++config CRYPTO_RD
++  	tristate "CS 444 Simple Block Driver With Crypto"
++
+ config BLK_DEV_NULL_BLK
+ 	tristate "Null test block driver"
+ 
 diff --git a/linux-yocto-3.19.2/drivers/block/Makefile b/linux-yocto-3.19.2/drivers/block/Makefile
 index 02b688d..230c180 100644
 --- a/linux-yocto-3.19.2/drivers/block/Makefile
@@ -26,7 +40,7 @@ index 02b688d..230c180 100644
  obj-$(CONFIG_BLK_DEV_FD)	+= floppy.o
 diff --git a/linux-yocto-3.19.2/drivers/block/simple_blk_dev.c b/linux-yocto-3.19.2/drivers/block/simple_blk_dev.c
 new file mode 100644
-index 0000000..bb87470
+index 0000000..9174307
 --- /dev/null
 +++ b/linux-yocto-3.19.2/drivers/block/simple_blk_dev.c
 @@ -0,0 +1,291 @@
@@ -108,9 +122,9 @@ index 0000000..bb87470
 +    int i;
 +
 +    if (write)
-+        printk("[ sbd.c: sbd_transfer() ] - WRITE Transferring Data\n");
++        printk("[ simple_blk_dev.c: sbd_transfer() ] - WRITE Transferring Data\n");
 +    else
-+        printk("[ sbd.c: sbd_transfer() ] - READ Transferring Data\n");
++        printk("[ simple_blk_dev.c: sbd_transfer() ] - READ Transferring Data\n");
 +
 +
 +    if ((offset + nbytes) > dev->size) {
@@ -120,9 +134,9 @@ index 0000000..bb87470
 +
 +
 +    if (crypto_cipher_setkey(tfm, key, keylen) == 0) {
-+        printk("[ sbd.c: sbd_transfer() ] - Crypto key is set and encrypted\n");
++        printk("[ simple_blk_dev.c: sbd_transfer() ] - Crypto key is set and encrypted\n");
 +    } else {
-+        printk("[ sbd.c: sbd_transfer() ] - Crypto key was not able to be set\n");
++        printk("[ simple_blk_dev.c: sbd_transfer() ] - Crypto key was not able to be set\n");
 +    }
 +    /*
 +     * Crypto section for read/write
@@ -130,7 +144,7 @@ index 0000000..bb87470
 +     */
 +    if (write) {
 +
-+        printk("[ sbd.c: sbd_transfer() ] - Write %lu bytes to device data\n", nbytes);
++        printk("[ simple_blk_dev.c: sbd_transfer() ] - Write %lu bytes to device data\n", nbytes);
 +
 +        destination = dev->data + offset;
 +        source = buffer;
@@ -144,12 +158,12 @@ index 0000000..bb87470
 +                    );
 +        }
 +
-+        printk("[ sbd.c: sbd_transfer() ] - UNENCRYPTED DATA VIEW:\n");
++        printk("[ simple_blk_dev.c: sbd_transfer() ] - UNENCRYPTED DATA VIEW:\n");
 +        for (i = 0; i < 100; i++) {
 +            printk("%u", (unsigned) *destination++);
 +        }
 +
-+        printk("\n[ sbd.c: sbd_transfer() ] - ENCRYPTED DATA VIEW:\n");
++        printk("\n[ simple_blk_dev.c: sbd_transfer() ] - ENCRYPTED DATA VIEW:\n");
 +        for (i = 0; i < 100; i++) {
 +            printk("%u", (unsigned) *source++);
 +        }
@@ -157,7 +171,7 @@ index 0000000..bb87470
 +    }
 +
 +    else {
-+        printk("[ sbd.c: sbd_transfer() ] - Read %lu bytes to device data\n", nbytes);
++        printk("[ simple_blk_dev.c: sbd_transfer() ] - Read %lu bytes to device data\n", nbytes);
 +
 +        destination = dev->data + offset;
 +        source = buffer;
@@ -171,19 +185,19 @@ index 0000000..bb87470
 +                    );
 +        }
 +
-+        printk("[ sbd.c: sbd_transfer() ] - UNENCRYPTED DATA VIEW:\n");
++        printk("[ simple_blk_dev.c: sbd_transfer() ] - UNENCRYPTED DATA VIEW:\n");
 +        for (i = 0; i < 100; i++) {
 +            printk("%u", (unsigned) *destination++);
 +        }
 +
-+        printk("\n[ sbd.c: sbd_transfer() ] - ENCRYPTED DATA VIEW:\n");
++        printk("\n[ simple_blk_dev.c: sbd_transfer() ] - ENCRYPTED DATA VIEW:\n");
 +        for (i = 0; i < 100; i++) {
 +            printk("%u", (unsigned) *source++);
 +        }
 +        printk("\n");
 +    }
 +
-+    printk("[ sbd.c: sbd_transfer() ] - Transfer and Encryption Completed\n");
++    printk("[ simple_blk_dev.c: sbd_transfer() ] - Transfer and Encryption Completed\n");
 +}
 +
 +static void sbd_request(struct request_queue *q) {
@@ -205,7 +219,7 @@ index 0000000..bb87470
 +                    blk_rq_cur_sectors(req),    /* Number of sectors */
 +                    bio_data(req->bio),                /* Buffer */
 +                    rq_data_dir(req));          /* Write */
-+        
++
 +        if ( ! __blk_end_request_cur(req, 0) ) {
 +            req = blk_fetch_request(q);
 +        }
@@ -239,7 +253,7 @@ index 0000000..bb87470
 +
 +static int __init sbd_init(void) {
 +
-+    printk("[ sbd.c: sbd_init() ] - Start Initialize\n");
++    printk("[ simple_blk_dev.c: sbd_init() ] - Start Initialize\n");
 +
 +
 +    /*
@@ -272,14 +286,14 @@ index 0000000..bb87470
 +    tfm = crypto_alloc_cipher("aes", 0, 0);
 +
 +    if (IS_ERR(tfm))
-+        printk("[ sbd.c: sbd_init() ] - Unable to allocate cipher\n");
++        printk("[ simple_blk_dev.c: sbd_init() ] - Unable to allocate cipher\n");
 +    else
-+        printk("[ sbd.c: sbd_init() ] - Allocated cipher\n");
++        printk("[ simple_blk_dev.c: sbd_init() ] - Allocated cipher\n");
 +
 +    /* Crypto debugging print statements */
-+    printk("[ sbd.c: sbd_init() ] - Block Cipher Size: %u\n", crypto_cipher_blocksize(tfm));
-+    printk("[ sbd.c: sbd_init() ] - Crypto key: %s\n", key);
-+    printk("[ sbd.c: sbd_init() ] - Key Length: %d\n", keylen);
++    printk("[ simple_blk_dev.c: sbd_init() ] - Block Cipher Size: %u\n", crypto_cipher_blocksize(tfm));
++    printk("[ simple_blk_dev.c: sbd_init() ] - Crypto key: %s\n", key);
++    printk("[ simple_blk_dev.c: sbd_init() ] - Key Length: %d\n", keylen);
 +
 +    /*
 +     * And the gendisk structure.
@@ -296,7 +310,7 @@ index 0000000..bb87470
 +    Device.gd->queue = Queue;
 +    add_disk(Device.gd);
 +
-+    printk("[ sbd.c: sbd_init() ] - Successful initialization\n");
++    printk("[ simple_blk_dev.c: sbd_init() ] - Successful initialization\n");
 +
 +    return 0;
 +
@@ -319,6 +333,6 @@ index 0000000..bb87470
 +module_init(sbd_init);
 +module_exit(sbd_exit);
 +
-+MODULE_AUTHOR("OS2 OSU Spring2018_Group20");
++MODULE_AUTHOR("Spring2018_Group20");
 +MODULE_DESCRIPTION("Simple Block Device Driver With Crypto");
 \ No newline at end of file
