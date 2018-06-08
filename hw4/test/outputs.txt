@@ -1,0 +1,16 @@
+test.c run with best-fit slob.c:
+
+Claimed Memory: 4294967295
+Free Memory: 4294967295
+Fragmentation: 1.000000
+-----
+Claimed Memory: 4294967295
+Free Memory: 4294967295
+Fragmentation: 1.000000
+-----
+Claimed Memory: 4294967295
+Free Memory: 4294967295
+Fragmentation: 1.000000
+-----
+
+test.c run with first-fit slob.c:
