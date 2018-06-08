@@ -642,6 +642,19 @@ struct kmem_cache kmem_cache_boot = {
 	.align = ARCH_KMALLOC_MINALIGN,
 };
 
+//add syscalls for test.c
+asmlinkage long sys_slob_used(void) {
+
+    // Used pages = Page Size * Total Pages
+    long slob_total_used = SLOB_UNITS(PAGE_SIZE) * slobPageCount;
+    return slob_total_used;
+}
+
+asmlinkage long sys_slob_free(void) {
+    return freeUnits;
+}
+
+
 void __init kmem_cache_init(void)
 {
 	kmem_cache = &kmem_cache_boot;
