@@ -1,0 +1,4 @@
+Design plan to implement best-fit algorithm for SLOB.
+
+The current algorithm for the slob.c is a first-fit algorithm, which simply allocates the first spot that is open.
+To implement a best-fit algorithm, we will simply need to add a checking loop before the memory is allocated, to test if that allocation is truly the best fit or not. In order to accomplish this, we can create a temporary variable which will hold our best allocation size. We can then iterate through all available spots, while testing if that spot has the smallest difference or not. Once we find it, we will continue with the first-fit algorithm and allow it to allocate that memory.
