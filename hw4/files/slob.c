@@ -221,7 +221,7 @@ static void slob_free_pages(void *b, int order)
 static void *slob_page_alloc(struct page *sp, size_t size, int align)
 {
 
-	slob_t *prev, *cur, *aligned = NULL, best=NULL;	//new best slob to keep track of best fit
+	slob_t *prev, *cur, *aligned = NULL, *best=NULL;	//new best slob to keep track of best fit
 	int delta = 0, units = SLOB_UNITS(size);
 	unsigned long frag = -1UL;						//variable to find miminum difference
 
@@ -359,7 +359,7 @@ static void *slob_alloc(size_t size, gfp_t gfp, int align, int node)
 	list_for_each_entry(sp, temp, list) {
 		freeUnits += sp->units;
 	}
-	
+
 	spin_unlock_irqrestore(&slob_lock, flags);
 
 	/* Not enough space: must allocate a new page */
