@@ -7,6 +7,13 @@
 \usepackage{listings}%
 \usepackage{color}
 \usepackage[usenames,dvipsnames,svgnames,table]{xcolor}
+\makeatletter
+\def\xfoo#1#2{\@tempcnta=0%
+  \@tfor\xx:=#2\do{\advance\@tempcnta 1%
+    \xx\ifnum\the\@tempcnta=#1\newline\@tempcnta=0\fi%
+  }%
+}
+
 \lstset{%
   basicstyle=\ttfamily\footnotesize,
   backgroundcolor=\color{gray!10},%
@@ -31,10 +38,10 @@
   alsoletter=-,%to allow qemu-system...
   %add extra keywords here.
   emph={%  
-    cd, ls, cp, qemu-system-i386, mv, mkdir, make, for, git, gdb, uname, tar, modprobe, echo, cat, sync, dd, dmesg, diff, chmod%
+    cd, ls, cp, qemu-system-i386, mv, mkdir, make, for, git, gdb, uname, tar, modprobe, echo, cat, sync, dd, dmesg, diff, insmod, mkfs, ext2, mount, chmod%
     },emphstyle={\color{black}\bf},
   %remove keywords below
-  deletekeywords={if, enable, continue}
+  deletekeywords={if, enable, continue, test, set}
 }%
 
 
@@ -45,21 +52,21 @@
 \graphicspath{{images/}}
 
 % 1. Fill in these details
-\def \TeamName{		Group 20}
-\def \GroupMemberOne{			Max Moulds}
-\def \GroupMemberTwo{			Monica Sek}
-\def \GroupMemberThree{			Nicholas Wong}
-\def \ProfessorPerson{		Dr. Kevin McGrath}
+\def \TeamName{   Group 20}
+\def \GroupMemberOne{     Max Moulds}
+\def \GroupMemberTwo{     Monica Sek}
+\def \GroupMemberThree{     Nicholas Wong}
+\def \ProfessorPerson{    Dr. Kevin McGrath}
 
 
 % 2. Uncomment the appropriate line below so that the document type works
-\def \DocType{		HW3 Writeup
-				}
+\def \DocType{    HW3 Writeup
+        }
 
 \newcommand{\NameSigPair}[1]{\par
-\makebox[2.75in][r]{#1} \hfil 	\makebox[3.25in]{\makebox[2.25in]{\hrulefill} \hfill		\makebox[.75in]{\hrulefill}}
+\makebox[2.75in][r]{#1} \hfil   \makebox[3.25in]{\makebox[2.25in]{\hrulefill} \hfill    \makebox[.75in]{\hrulefill}}
 \par\vspace{-12pt} \textit{\tiny\noindent
-\makebox[2.75in]{} \hfil		\makebox[3.25in]{\makebox[2.25in][r]{Signature} \hfill	\makebox[.75in][r]{Date}}}}
+\makebox[2.75in]{} \hfil    \makebox[3.25in]{\makebox[2.25in][r]{Signature} \hfill  \makebox[.75in][r]{Date}}}}
 % 3. If the document is not to be signed, uncomment the RENEWcommand below
 %\renewcommand{\NameSigPair}[1]{#1}
 
@@ -78,19 +85,19 @@
             \vfill
             \vspace{5pt}
             %{\Large\NameSigPair{\ProfessorPerson}\par}
-						{\large Prepared for }\par
-						\ProfessorPerson\par
+            {\large Prepared for }\par
+            \ProfessorPerson\par
             {\large Prepared by }\par
             \GroupMemberOne\par
-						\GroupMemberTwo\par
-						\GroupMemberThree\par
+            \GroupMemberTwo\par
+            \GroupMemberThree\par
             \vspace{5pt}
             \vspace{20pt}
         }
         \begin{abstract}
         %6. Fill in your abstract
-       		This document is the writeup for homework 3 of Operating Systems II Spring term 2018, written by Group 20.
-					\end{abstract}
+          This document is the writeup for homework 3 of Operating Systems II Spring term 2018, written by Group 20.
+          \end{abstract}
     \end{singlespace}
 \end{titlepage}
 \newpage
@@ -198,7 +205,7 @@ nickywongdong & 2018-05-25 & finalizing \\ \hline
     \begin{singlespace} 
     While continuing to cement our understanding and comfort with developing Yocto kernel components and procedures we extended our general understanding of low level system components and their interaction with other kernel subsystems. This is most evident in the interaction between the kernel module we implemented to provide the block device and the corresponding functions used within that code that in turn used the already existing API to provide our needed cryptographic functionality.
     
-    Implementation alone continued lessons begun in past assignments, this assignment brought about another element that forced us to learn. Testing and verifying our solution was not as straightforward as using the implemented changes and inspecting the output and led to greater understanding of development. Sometimes verification of a solution is tougher processes than the finding the initial solution itself. Additionally, cryptography has a higher degree of required verification since ramifications from a failure in a cryptographic implementation carry different ramifications from those in the past two assignments which mainly impact system performance relating to physical device such as a hard drive and the physical or operational damages from improper implementation. The impacts from improperly verified cryptographic functionality is complete loss of the functionality and intended service. That is a crytpographic integrity is either complete or non-existant whereas a poorly implemented seek algorithm for a hard drive device can still provide some level of service. 
+   \quad Implementation alone continued lessons begun in past assignments, this assignment brought about another element that forced us to learn. Testing and verifying our solution was not as straightforward as using the implemented changes and inspecting the output and led to greater understanding of development. Sometimes verification of a solution is tougher processes than the finding the initial solution itself. Additionally, cryptography has a higher degree of required verification since ramifications from a failure in a cryptographic implementation carry different ramifications from those in the past two assignments which mainly impact system performance relating to physical device such as a hard drive and the physical or operational damages from improper implementation. The impacts from improperly verified cryptographic functionality is complete loss of the functionality and intended service. That is a crytpographic integrity is either complete or non-existant whereas a poorly implemented seek algorithm for a hard drive device can still provide some level of service. 
 
 
     \end{singlespace}
@@ -207,22 +214,142 @@ nickywongdong & 2018-05-25 & finalizing \\ \hline
     Start with the 3.19.2 Yocto kernel source and our project submission and enter into that submission directory. Use the patch file given with this write up or located at 
     \end{singlespace}
     \begin{lstlisting}
-    https://github.com/nickywongdong/CS444_GROUP20/blob/master/hw3/patch/hw3.patchc file in the block directory within the Yocto source.
+    https://github.com/nickywongdong/CS444_GROUP20/blob/master/hw3/patch/hw3.patch
     \end{lstlisting}
     \subsection*{Applying the patch and compiling the kernel image}
     \begin{singlespace}
-    First, please apply the patch supplied to the v3.19.2 branch of the Yocto Kernel, and while in that directory check that patch applied by looking for the simple device block driver.
+    First, please apply the patch supplied to the v3.19.2 branch of the Yocto Kernel, and while in that directory check that patch applied by looking for the simple device block driver. Use the processes described in past assignments.
 
     Once compilation has completed, there should be a kernel image file in the x86 directory and subdirectory boot. Please start the VM using the following command changed to reflect booting from that image:
     \end{singlespace}
     \begin{lstlisting}
     > qemu-system-i386 -gdb tcp::5520 -S -nographic -kernel linux-yocto-3.19.2/arch/x86/boot/bzImage -drive file=core-image-lsb-sdk-qemux86.ext4,if=virtio -enable-kvm -usb -localtime --no-reboot --append "root=/dev/vda rw console=ttyS0 debug"
-
     \end{lstlisting}
     \begin{singlespace}
-    Note that if the filesytem container {\bf core-image-lsb-sdk-qemux86.ext4} is not located in the parent directory of the Yocto kernel, change either the command to reference the filesystem container file or move that file to the parent directory. 
+    Now that the virtual machine is running transfer the compiled kernel object file  compiled and use insmod instead of modprobe to load the device driver. Once loaded enable it with
     \end{singlespace}
+    \begin{lstlisting}
+    > insmod sdb.ko
+    > mkfs.ext2 /dev/sbd0
+    > mount /dev/sbd0 /test
+    \end{lstlisting}
+    This should create a filesystem on that block device and that filesystem should be encrypted. Generate file I/O and view dmesg or one may need to cat the contents of /var/log/dmesg or /var/log/kernel for confirmation from the encryption operation described earlier in the document. Below is an example output from those functions:
     
+    Output after mounting ext2 filesytem on block device:
+    \begin{lstlisting}
+    [ simple_blk_dev.c: sbd_transfer() ] - READ Transferring Data
+    [ simple_blk_dev.c: sbd_transfer() ] - Crypto key is set and encrypted
+    [ simple_blk_dev.c: sbd_transfer() ] - Read 4096 bytes to device data
+    [ simple_blk_dev.c: sbd_transfer() ] - UNENCRYPTED DATA VIEW:
+    11218216925422555629918715122919119396021116716313918237209177622711212724310125
+    03119916716313918237209177622711212724310125031199209291361421081062391354813514
+    81854735130771139544212208433901297415916522357451541139544212208433901297415916
+    52235745154113954421
+    [ simple_blk_dev.c: sbd_transfer() ] - ENCRYPTED DATA VIEW:
+    25525525570000000000000000000000000000000000000000000000000000000000012825525525
+    52552552552552552552552552552552552552552552552552552552552552552552552552552552
+    55255255255255255255
+    [ simple_blk_dev.c: sbd_transfer() ] - Transfer and Encryption Completed
+    [ simple_blk_dev.c: sbd_transfer() ] - READ Transferring Data
+    [ simple_blk_dev.c: sbd_transfer() ] - Crypto key is set and encrypted
+    [ simple_blk_dev.c: sbd_transfer() ] - Read 4096 bytes to device data
+    [ simple_blk_dev.c: sbd_transfer() ] - UNENCRYPTED DATA VIEW:
+    16716313918237209177622711212724310125031199167163139182372091776227112127243101
+    25031199167163139182372091776227112127243101250311991671631391823720917762271121
+    27243101250311991671631391823720917762271121272430125031199167163139182372091776
+    2271121272431012503119916716313918
+    [ simple_blk_dev.c: sbd_transfer() ] - ENCRYPTED DATA VIEW:
+    00000000000000000000000000000000000000000000000000000000000000000000000000000000
+    0000000000000000000
+    [ simple_blk_dev.c: sbd_transfer() ] - Transfer and Encryption Completed
+    [ simple_blk_dev.c: sbd_transfer() ] - READ Transferring Data
+    [ simple_blk_dev.c: sbd_transfer() ] - Crypto key is set and encrypted
+    [ simple_blk_dev.c: sbd_transfer() ] - Read 4096 bytes to device data
+    [ simple_blk_dev.c: sbd_transfer() ] - UNENCRYPTED DATA VIEW:
+    16716313918237209177622711212724310125031199167163139182372091776227112127243101
+    25031199167163139182372091776227112127243101250311991671631391823720917762271121
+    27243101250311991671631391823720917762271121272431012503119916716313918237209177
+    62271121272431012503119916716313918
+    [ simple_blk_dev.c: sbd_transfer() ] - ENCRYPTED DATA VIEW:
+    00000000000000000000000000000000000000000000000000000000000000000000000000000000
+    00000000000000000000
+    [ simple_blk_dev.c: sbd_transfer() ] - Transfer and Encryption Completed
+    [ simple_blk_dev.c: sbd_transfer() ] - READ Transferring Data
+    [ simple_blk_dev.c: sbd_transfer() ] - Crypto key is set and encrypted
+    [ simple_blk_dev.c: sbd_transfer() ] - Read 4096 bytes to device data
+    [ simple_blk_dev.c: sbd_transfer() ] - UNENCRYPTED DATA VIEW:
+    18369001210019669001210020969001210022269001210023569001210024869001210057000121
+    001870001210031700012100447000121007170001210083700012100957000
+    [ simple_blk_dev.c: sbd_transfer() ] - ENCRYPTED DATA VIEW:
+    12111142159911111618819197202461642108212226107810131150639184622152814101176194
+    63139154567910917486228227114163222366915917464301911792341622120511897671912431
+    98223227151912022102344023115171638985161231158471221671679881241606572412422216
+    214720717190128192
+    [ simple_blk_dev.c: sbd_transfer() ] - Transfer and Encryption Completed
+    [ simple_blk_dev.c: sbd_transfer() ] - READ Transferring Data
+    [ simple_blk_dev.c: sbd_transfer() ] - Crypto key is set and encrypted
+    [ simple_blk_dev.c: sbd_transfer() ] - Read 4096 bytes to device data
+    [ simple_blk_dev.c: sbd_transfer() ] - UNENCRYPTED DATA VIEW:
+    45971181203245103324579503245115116100611031101175748324511232451021101114511511
+    61141059911645971081059711510511010332451021101114599111109109111110324510211410
+    11034511511611411799116451141011161171141103245102110111451121059932451021021141
+    0110111511697110100105
+    [ simple_blk_dev.c: sbd_transfer() ] - ENCRYPTED DATA VIEW:
+    23614217105342195129172219164163652912981125246362222111037218777281809194222082
+    12137524121819716015761013613823924151906118694633401682306351158132239502095119
+    38125142216371481333210912493142190185622142104888195221220210223192214253105229
+    581411961282057159
+    [ simple_blk_dev.c: sbd_transfer() ] - Transfer and Encryption Completed
+    [ simple_blk_dev.c: sbd_transfer() ] - READ Transferring Data
+    [ simple_blk_dev.c: sbd_transfer() ] - Crypto key is set and encrypted
+    [ simple_blk_dev.c: sbd_transfer() ] - Read 1024 bytes to device data
+    [ simple_blk_dev.c: sbd_transfer() ] - UNENCRYPTED DATA VIEW:
+    25019733153303123670967131243156197170737410723810622311522419221711079158017775
+    82419171952021416215813675333202214784549375021117110223693214158228174157100641
+    25181578161141522454209793211211176121187127165273199239160169109177107841521901
+    91127160183252190
+    [ simple_blk_dev.c: sbd_transfer() ] - ENCRYPTED DATA VIEW:
+    64000020025000228100530001000000000000320003200640000000130691191002552558323910
+    1000130691191000000001000000011000128000560002000
+    [ simple_blk_dev.c: sbd_transfer() ] - Transfer and Encryption Completed
+    [ simple_blk_dev.c: sbd_transfer() ] - READ Transferring Data
+    [ simple_blk_dev.c: sbd_transfer() ] - Crypto key is set and encrypted
+    [ simple_blk_dev.c: sbd_transfer() ] - Read 1024 bytes to device data
+    [ simple_blk_dev.c: sbd_transfer() ] - UNENCRYPTED DATA VIEW:
+    18222622855456237721547142115291862171032118253972023524935174217106231551961951
+    30167163139182372091776227112127243101250311991671631391823720917762271121272431
+    01250311991671631391823720917762271121272431012503119916716313918237209177622711
+    21272431012503119916716313918
+    [ simple_blk_dev.c: sbd_transfer() ] - ENCRYPTED DATA VIEW:
+    40005000600022815302000000000000000000000000000000000000000000000000000000000000
+    00000000000000000000000
+    [ simple_blk_dev.c: sbd_transfer() ] - Transfer and Encryption Completed
+    [ simple_blk_dev.c: sbd_transfer() ] - READ Transferring Data
+    [ simple_blk_dev.c: sbd_transfer() ] - Crypto key is set and encrypted
+    [ simple_blk_dev.c: sbd_transfer() ] - Read 1024 bytes to device data
+    [ simple_blk_dev.c: sbd_transfer() ] - UNENCRYPTED DATA VIEW:
+    21416420515823784337702321092337120123911017923923225311110981281235411121113249
+    36191167163139182372091776227112127243101250311991671631391823720917762271121272
+    43101250311991671631391823720917762271121272431012503119916716313918237209177622
+    71121272431012503119916716313918
+    [ simple_blk_dev.c: sbd_transfer() ] - ENCRYPTED DATA VIEW:
+    00000000130691191130691191130691191000000000000000000000000000000000000000000000
+    00000000000000000000000000000000000
+    [ simple_blk_dev.c: sbd_transfer() ] - Transfer and Encryption Completed
+    [ simple_blk_dev.c: sbd_transfer() ] - WRITE Transferring Data
+    [ simple_blk_dev.c: sbd_transfer() ] - Crypto key is set and encrypted
+    [ simple_blk_dev.c: sbd_transfer() ] - Write 1024 bytes to device data
+    [ simple_blk_dev.c: sbd_transfer() ] - UNENCRYPTED DATA VIEW:
+    25019733153303123670967131243156197170737410723810622311522419221711079158017775
+    82419171952021416215813675333202214784520512044831804813622223411685223249220910
+    18157816114152245420979321121117612118712716527319923916016910917710784152190191
+    127160183252190
+    [ simple_blk_dev.c: sbd_transfer() ] - ENCRYPTED DATA VIEW:
+    64000020025000228100530001000000000000320003200640000000150691191102552558323900
+    1000130691191000000001000000011000128000560002000
+    [ simple_blk_dev.c: sbd_transfer() ] - Transfer and Encryption Completed
+\end{lstlisting}
+
     And that concludes our writeup for HW3. Thank you. 
   
 \end{enumerate}

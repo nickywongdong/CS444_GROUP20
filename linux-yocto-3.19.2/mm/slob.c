@@ -92,6 +92,10 @@ struct slob_block {
 };
 typedef struct slob_block slob_t;
 
+unsigned long slobPageCount = 0;
+unsigned long freeUnits     = 0;
+
+
 /*
  * All partially free slob pages go on these lists.
  */
@@ -270,8 +274,10 @@ static void *slob_alloc(size_t size, gfp_t gfp, int align, int node)
 	struct page *sp;
 	struct list_head *prev;
 	struct list_head *slob_list;
+	struct list_head *temp;
 	slob_t *b = NULL;
 	unsigned long flags;
+	freeUnits = 0;
 
 	if (size < SLOB_BREAK1)
 		slob_list = &free_slob_small;
@@ -309,6 +315,22 @@ static void *slob_alloc(size_t size, gfp_t gfp, int align, int node)
 			list_move_tail(slob_list, prev->next);
 		break;
 	}
+
+	//Loop through each linked list to find free space
+	temp = &free_slob_small;
+	list_for_each_entry(sp, temp, lru) {
+		freeUnits += sp->units;
+	}
+	temp = &free_slob_medium;
+	list_for_each_entry(sp, temp, lru) {
+		freeUnits += sp->units;
+	}
+	temp = &free_slob_large;
+	list_for_each_entry(sp, temp, lru) {
+		freeUnits += sp->units;
+	}
+
+
 	spin_unlock_irqrestore(&slob_lock, flags);
 
 	/* Not enough space: must allocate a new page */
@@ -328,6 +350,8 @@ static void *slob_alloc(size_t size, gfp_t gfp, int align, int node)
 		b = slob_page_alloc(sp, size, align);
 		BUG_ON(!b);
 		spin_unlock_irqrestore(&slob_lock, flags);
+
+		slobPageCount++;
 	}
 	if (unlikely((gfp & __GFP_ZERO) && b))
 		memset(b, 0, size);
@@ -362,6 +386,8 @@ static void slob_free(void *block, int size)
 		__ClearPageSlab(sp);
 		page_mapcount_reset(sp);
 		slob_free_pages(b, 0);
+
+		slobPageCount--;
 		return;
 	}
 
@@ -629,6 +655,17 @@ struct kmem_cache kmem_cache_boot = {
 	.flags = SLAB_PANIC,
 	.align = ARCH_KMALLOC_MINALIGN,
 };
+
+asmlinkage long sys_slob_used(void) {
+
+    // Used pages = Page Size * Total Pages
+    long slob_total_used = SLOB_UNITS(PAGE_SIZE) * slobPageCount;
+    return slob_total_used;
+}
+
+asmlinkage long sys_slob_free(void) {
+    return freeUnits;
+}
 
 void __init kmem_cache_init(void)
 {
