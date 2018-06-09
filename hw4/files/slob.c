@@ -236,7 +236,13 @@ static void *slob_page_alloc(struct page *sp, size_t size, int align)
 
 		if (avail >= units + delta) { /* room enough? */
 			//look for smaller and better fits
-			if(frag > avail - units) {
+
+			//if this is our first entry, just set it to the first item
+			if(frag == -1UL){
+				frag = avail - units;
+				best = cur;
+			}
+			else if(frag > avail - units) {
 				frag = avail - units;
 				best =  cur;			//set that point as the best fit
 			}
@@ -299,12 +305,11 @@ static void *slob_page_alloc(struct page *sp, size_t size, int align)
  */
 static void *slob_alloc(size_t size, gfp_t gfp, int align, int node)
 {
-	counter++;
-
 
 	struct page *sp;
 	struct list_head *prev;
 	struct list_head *slob_list;
+	struct list_head *temp;
 	slob_t *b = NULL;
 	unsigned long flags;
 	freeUnits=0;
@@ -348,15 +353,15 @@ static void *slob_alloc(size_t size, gfp_t gfp, int align, int node)
 
 	//Loop through each linked list to find free space
 	temp = &free_slob_small;
-	list_for_each_entry(sp, temp, list) {
+	list_for_each_entry(sp, temp, lru) {
 		freeUnits += sp->units;
 	}
 	temp = &free_slob_medium;
-	list_for_each_entry(sp, temp, list) {
+	list_for_each_entry(sp, temp, lru) {
 		freeUnits += sp->units;
 	}
 	temp = &free_slob_large;
-	list_for_each_entry(sp, temp, list) {
+	list_for_each_entry(sp, temp, lru) {
 		freeUnits += sp->units;
 	}
 
