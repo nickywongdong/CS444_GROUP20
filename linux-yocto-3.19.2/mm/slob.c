@@ -272,6 +272,7 @@ static void *slob_page_alloc(struct page *sp, size_t size, int align)
 static void *slob_alloc(size_t size, gfp_t gfp, int align, int node)
 {
 	struct page *sp;
+	struct page *spTemp = NULL;
 	struct list_head *prev;
 	struct list_head *slob_list;
 	struct list_head *temp;
@@ -301,21 +302,20 @@ static void *slob_alloc(size_t size, gfp_t gfp, int align, int node)
 		if (sp->units < SLOB_UNITS(size))
 			continue;
 
-		/* Attempt to alloc */
-		prev = sp->lru.prev;
-		b = slob_page_alloc(sp, size, align);
-		if (!b)
-			continue;
+		//first entry:
+		if (spTemp == NULL)
+			spTemp = sp;
 
-		/* Improve fragment distribution and reduce our average
-		 * search time by starting our next search here. (see
-		 * Knuth vol 1, sec 2.5, pg 449) */
-		if (prev != slob_list->prev &&
-				slob_list->next != prev->next)
-			list_move_tail(slob_list, prev->next);
-		break;
+
+		//otherwise find the next best fit
+		if (sp->units < spTemp ->units)
+			spTemp = sp;
+
+	//attempt to alloc, in otherwords we have found a best fit page:
+	if (spTemp != NULL) {
+		b = slob_page_alloc(spTemp, size, align);
 	}
-
+	
 	//Loop through each linked list to find free space
 	temp = &free_slob_small;
 	list_for_each_entry(sp, temp, lru) {
