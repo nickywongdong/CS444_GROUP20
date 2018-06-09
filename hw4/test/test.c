@@ -4,8 +4,8 @@
 #include <unistd.h>
 #include <sys/syscall.h>
 
-#define claimedMemory syscall(354)
-#define freeMemory syscall(353)
+#define claimedMemory syscall(359)
+#define freeMemory syscall(360)
 
 int main() {
 	float fragmentation;
